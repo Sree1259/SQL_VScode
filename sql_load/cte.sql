@@ -61,3 +61,41 @@ SELECT s.skill_id,s.skills,c.count_skills
 from skills_dim s LEFT JOIN skills_count c
 on s.skill_id=c.skill_id
 order by count_skills DESC limit 5;
+
+--skills of the jobs count with remote work
+--joins
+
+SELECT 
+    s.skill_id,sd.skills,
+    count(*) as jobs_count
+FROM skills_job_dim s
+INNER JOIN job_postings_fact j
+on s.job_id=j.job_id
+inner join skills_dim sd
+on s.skill_id=sd.skill_id
+WHERE j.job_work_from_home=TRUE
+GROUP BY s.skill_id, sd.skills
+order by jobs_count DESC;
+
+--cte
+
+WITH Remote_jobs AS(
+SELECT 
+    s.skill_id,
+    count(*) as jobs_count
+FROM skills_job_dim s
+INNER JOIN job_postings_fact j
+on s.job_id=j.job_id
+WHERE j.job_work_from_home=TRUE AND
+    j.job_title_short='Data Analyst'
+GROUP BY s.skill_id
+ORDER BY jobs_count
+)
+
+SELECT s.skill_id,s.skills as Skill_Name, r.jobs_count
+
+from Remote_jobs r
+Inner join skills_dim s
+on r.skill_id=s.skill_id
+ORDER by jobs_count DESC
+limit 5;
